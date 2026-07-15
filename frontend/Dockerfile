@@ -1,14 +1,18 @@
 # ...existing code...
 FROM node:20-alpine3.18 AS build
 WORKDIR /app
+
+# install dependencies
 COPY package*.json ./
 RUN npm install
+
+# copy source and build
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine3.18
-WORKDIR /app
-COPY --from=build /app/dist ./dist
-EXPOSE 3000
-CMD ["node", "dist/main.js"]
+# production image: nginx serving the CRA build output
+FROM nginx:stable-alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 # ...existing code...
