@@ -1,18 +1,32 @@
-# ...existing code...
+# ==========================
+# Build Stage
+# ==========================
 FROM node:20-alpine3.18 AS build
+
 WORKDIR /app
 
-# install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm install
 
-# copy source and build
+# Install dependencies
+RUN npm ci
+
+# Copy application source
 COPY . .
+
+# Build React application
 RUN npm run build
 
-# production image: nginx serving the CRA build output
+# ==========================
+# Production Stage
+# ==========================
 FROM nginx:stable-alpine
+
+# Copy React build output
 COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose Nginx port
 EXPOSE 80
+
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
-# ...existing code...
